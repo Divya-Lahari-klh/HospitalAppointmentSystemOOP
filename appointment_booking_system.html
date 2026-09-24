@@ -1,0 +1,449 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Appointment Booking & Hospital Management</title>
+    <!-- Load Tailwind CSS -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@100..900&display=swap" rel="stylesheet">
+    <style>
+        /* Custom scrollbar styling */
+        ::-webkit-scrollbar { width: 8px; }
+        ::-webkit-scrollbar-track { background: #e0f2f1; border-radius: 10px; }
+        ::-webkit-scrollbar-thumb { background: #0f766e; border-radius: 10px; }
+        ::-webkit-scrollbar-thumb:hover { background: #0d9488; }
+
+        body {
+            font-family: 'Inter', sans-serif;
+            background-color: #f0fdfa; /* Light mint background */
+        }
+        .container-shadow {
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.1);
+        }
+        .modal-backdrop {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background-color: rgba(0, 0, 0, 0.5);
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            z-index: 50;
+        }
+        .modal-content {
+            max-height: 90vh;
+            overflow-y: auto;
+        }
+        .view-section {
+            transition: opacity 0.3s ease-in-out;
+        }
+    </style>
+</head>
+<body>
+
+    <div id="app" class="min-h-screen flex flex-col justify-between p-4 sm:p-8">
+
+        <!-- Top Header Navigation -->
+        <header class="max-w-4xl mx-auto w-full flex justify-between items-center mb-6">
+            <div class="flex items-center space-x-2 cursor-pointer" onclick="switchView('landing')">
+                <svg class="w-8 h-8 text-teal-600" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 21V5a2 2 0 00-2-2H7a2 2 0 00-2 2v16m14 0h2m-2 0h-5m-9 0H3m2 0h5M9 7h1m-1 4h1m4-4h1m-1 4h1m-5 10v-5a1 1 0 011-1h2a1 1 0 011 1v5m-4 0h4"></path></svg>
+                <span class="text-xl font-bold text-teal-800">SwiftCare HMS</span>
+            </div>
+            <div id="nav-actions" class="hidden sm:flex space-x-3">
+                <button onclick="switchView('landing')" class="text-sm font-medium text-teal-700 hover:text-teal-900 px-3 py-1.5 rounded-lg">Home</button>
+                <button onclick="switchView('booking')" class="text-sm font-medium bg-teal-600 text-white hover:bg-teal-700 px-4 py-1.5 rounded-lg shadow">Book Appointment</button>
+            </div>
+        </header>
+
+        <!-- Main Content Switcher Area -->
+        <main class="flex-grow flex items-center justify-center">
+            
+            <!-- VIEW 1: LANDING PAGE -->
+            <div id="view-landing" class="view-section max-w-4xl w-full text-center bg-white rounded-2xl container-shadow p-8 sm:p-16">
+                <div class="inline-block p-4 bg-teal-100 text-teal-700 rounded-full mb-6">
+                    <svg class="w-12 h-12" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 6v6m0 0v6m0-6h6m-6 0H6"></path></svg>
+                </div>
+                <h1 class="text-4xl sm:text-6xl font-extrabold text-teal-700 tracking-tight mb-4">
+                    Hospital Appointment System
+                </h1>
+                <p class="text-lg sm:text-xl text-gray-600 mb-8 max-w-2xl mx-auto">
+                    Welcome to SwiftCare. Seamlessly schedule doctor consultations, check available room numbers, find the central pharmacy, and set reminders for your visit.
+                </p>
+                <div class="flex flex-col sm:flex-row justify-center items-center gap-4">
+                    <button onclick="switchView('booking')" class="w-full sm:w-auto bg-teal-600 hover:bg-teal-700 text-white font-bold py-4 px-8 rounded-xl text-lg transition duration-300 transform hover:scale-105 shadow-xl shadow-teal-500/30 flex items-center justify-center">
+                        Get Started & Book Slot 
+                        <svg class="w-5 h-5 ml-2" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M14 5l7 7m0 0l-7 7m7-7H3"></path></svg>
+                    </button>
+                </div>
+            </div>
+
+            <!-- VIEW 2: APPOINTMENT BOOKING & MAPPING PAGE (Hidden initially) -->
+            <div id="view-booking" class="view-section hidden max-w-4xl w-full bg-white rounded-xl container-shadow p-6 sm:p-8">
+                <div class="flex justify-between items-center mb-6 border-b pb-3">
+                    <h2 class="text-2xl font-bold text-teal-800">
+                        Find & Map Available Doctors
+                    </h2>
+                    <button onclick="switchView('landing')" class="text-sm text-gray-500 hover:text-teal-700 font-medium">← Back to Home</button>
+                </div>
+
+                <!-- Appointment Search Form -->
+                <div id="appointment-form" class="grid grid-cols-1 md:grid-cols-4 gap-4">
+                    
+                    <!-- Date Picker -->
+                    <div class="col-span-1">
+                        <label for="date" class="block text-sm font-medium text-gray-700 mb-1">Date</label>
+                        <input type="date" id="date" class="w-full p-3 border border-gray-300 rounded-lg focus:ring-teal-500 focus:border-teal-500 transition duration-150">
+                    </div>
+
+                    <!-- Time Picker -->
+                    <div class="col-span-1">
+                        <label for="time" class="block text-sm font-medium text-gray-700 mb-1">Time (Slot)</label>
+                        <select id="time" class="w-full p-3 border border-gray-300 rounded-lg bg-white focus:ring-teal-500 focus:border-teal-500 transition duration-150">
+                            <!-- Time options populated by JS -->
+                        </select>
+                    </div>
+
+                    <!-- Specialization Dropdown -->
+                    <div class="col-span-1">
+                        <label for="specialization" class="block text-sm font-medium text-gray-700 mb-1">Specialization</label>
+                        <select id="specialization" class="w-full p-3 border border-gray-300 rounded-lg bg-white focus:ring-teal-500 focus:border-teal-500 transition duration-150">
+                            <option value="All">All Specializations</option>
+                            <!-- Specializations populated by JS -->
+                        </select>
+                    </div>
+
+                    <!-- Search Button -->
+                    <div class="col-span-1 flex items-end">
+                        <button onclick="handleSearch()" class="w-full bg-teal-600 hover:bg-teal-700 text-white font-semibold py-3 px-4 rounded-lg transition duration-300 transform hover:scale-[1.01] shadow-lg shadow-teal-500/50">
+                            Search Doctors
+                        </button>
+                    </div>
+                </div>
+
+                <!-- Doctor Results Area -->
+                <div class="mt-8">
+                    <h3 class="text-xl font-bold text-teal-800 mb-4">
+                        Available Doctors Mapping
+                    </h3>
+                    
+                    <!-- Message Box -->
+                    <div id="message-box" class="hidden p-4 rounded-lg text-sm mb-4 bg-yellow-100 text-yellow-800 border border-yellow-300"></div>
+
+                    <!-- Doctor Cards Grid -->
+                    <div id="doctor-results" class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
+                        <p class="col-span-full text-center text-gray-500 py-10" id="initial-message">
+                            Select a time and specialization above to map out available practitioners.
+                        </p>
+                    </div>
+
+                    <!-- Loading Spinner -->
+                    <div id="loading-spinner" class="hidden flex justify-center items-center py-10">
+                        <svg class="animate-spin h-8 w-8 text-teal-600" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+                            <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
+                            <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+                        </svg>
+                        <span class="ml-3 text-teal-600 font-medium">Searching availability...</span>
+                    </div>
+                </div>
+
+                <!-- Pharmacy Plot / Location Info -->
+                <div class="mt-10 pt-6 border-t border-gray-200">
+                     <h3 class="text-xl font-bold text-teal-800 mb-3 flex items-center">
+                        Pharmacy Location Map
+                        <svg class="ml-2 w-5 h-5 text-green-600" xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 2v20"/><path d="M5 9h14"/><path d="M5 15h14"/><path d="M18 5l-4 4"/><path d="M14 5l4 4"/><path d="M18 19l-4-4"/><path d="M14 19l4-4"/></svg>
+                    </h3>
+                    <div class="bg-green-50 border border-green-200 p-4 rounded-lg text-green-800 text-sm font-medium">
+                        The **Central Pharmacy** is located on the **Ground Floor, near the main reception**. Open 24/7.
+                    </div>
+                </div>
+
+                <!-- Footer Action Buttons (Reminder Button Added) -->
+                <div class="mt-8 pt-6 border-t border-gray-100 flex flex-col sm:flex-row justify-between items-center gap-4">
+                    <button onclick="openReminderModal()" class="w-full sm:w-auto bg-amber-500 hover:bg-amber-600 text-white font-semibold py-2.5 px-6 rounded-lg transition duration-200 shadow flex items-center justify-center">
+                        <svg class="w-5 h-5 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 17h5l-1.405-1.405A2.032 2.032 0 0118 14.158V11a6.002 6.002 0 00-4-5.659V5a2 2 0 10-4 0v.341C7.67 6.165 6 8.388 6 11v3.159c0 .538-.214 1.055-.595 1.436L4 17h5m6 0v1a3 3 0 11-6 0v-1m6 0H9"></path></svg>
+                        Set Booking Reminder
+                    </button>
+                    <span class="text-xs text-gray-400">Need help? Contact hospital helpdesk at ext. 402</span>
+                </div>
+
+            </div>
+
+        </main>
+
+        <!-- Footer -->
+        <footer class="text-center mt-8 text-xs text-teal-600">
+            &copy; 2026 SwiftCare Hospital Management System. All rights reserved.
+        </footer>
+    </div>
+
+    <!-- Booking Modal Structure -->
+    <div id="booking-modal" class="modal-backdrop hidden">
+        <div class="modal-content bg-white p-6 sm:p-8 rounded-xl w-11/12 md:max-w-md container-shadow relative animate-fade-in-down">
+            <button onclick="closeModal()" class="absolute top-3 right-3 text-gray-400 hover:text-gray-600 transition duration-150">
+                <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path></svg>
+            </button>
+
+            <h3 class="text-2xl font-bold text-teal-700 mb-4 border-b pb-2">Confirm Appointment</h3>
+            
+            <div id="modal-details" class="space-y-3 mb-6 p-3 bg-gray-50 rounded-lg text-sm">
+                <!-- Injected details -->
+            </div>
+
+            <form onsubmit="event.preventDefault(); confirmBooking()">
+                <div class="mb-4">
+                    <label for="patient-id" class="block text-sm font-medium text-gray-700 mb-1">Your Patient ID / Full Name</label>
+                    <input type="text" id="patient-id" required class="w-full p-3 border border-gray-300 rounded-lg focus:ring-teal-500 focus:border-teal-500 transition duration-150" placeholder="e.g., P90382 or John Doe">
+                </div>
+                
+                <input type="hidden" id="modal-doctor-id">
+                <input type="hidden" id="modal-time-slot">
+                
+                <button type="submit" class="w-full bg-green-500 hover:bg-green-600 text-white font-semibold py-3 px-4 rounded-lg transition duration-300 shadow-md shadow-green-500/50">
+                    Finalize Booking
+                </button>
+            </form>
+        </div>
+    </div>
+
+    <!-- Reminder Modal Structure -->
+    <div id="reminder-modal" class="modal-backdrop hidden">
+        <div class="modal-content bg-white p-6 sm:p-8 rounded-xl w-11/12 md:max-w-md container-shadow relative">
+            <button onclick="closeReminderModal()" class="absolute top-3 right-3 text-gray-400 hover:text-gray-600">
+                <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path></svg>
+            </button>
+            
+            <h3 class="text-2xl font-bold text-amber-700 mb-4 border-b pb-2">Setup Visit Reminder</h3>
+            <p class="text-sm text-gray-600 mb-4">Provide your details to schedule automated SMS/Email reminders for your booked session.</p>
+            
+            <form onsubmit="event.preventDefault(); submitReminder()">
+                <div class="mb-4">
+                    <label class="block text-sm font-medium text-gray-700 mb-1">Patient Name or ID</label>
+                    <input type="text" id="reminder-patient" required class="w-full p-3 border border-gray-300 rounded-lg" placeholder="e.g. John Doe">
+                </div>
+                <div class="mb-4">
+                    <label class="block text-sm font-medium text-gray-700 mb-1">Mobile Number or Email</label>
+                    <input type="text" id="reminder-contact" required class="w-full p-3 border border-gray-300 rounded-lg" placeholder="john@example.com or phone">
+                </div>
+                <button type="submit" class="w-full bg-amber-500 hover:bg-amber-600 text-white font-semibold py-3 px-4 rounded-lg shadow">
+                    Activate Reminder Alert
+                </button>
+            </form>
+        </div>
+    </div>
+
+    <script>
+        // --- MOCK DATA ---
+        const MOCK_DOCTORS = [
+            { id: 'd1', name: 'Dr. Alice Johnson', specialization: 'Cardiology', roomNumber: 'A-201', availability: ['09:00', '10:00', '14:00'] },
+            { id: 'd2', name: 'Dr. Bob Williams', specialization: 'Pediatrics', roomNumber: 'P-305', availability: ['09:00', '12:00', '15:00', '16:00'] },
+            { id: 'd3', name: 'Dr. Carol Davis', specialization: 'Neurology', roomNumber: 'N-110', availability: ['10:00', '11:00', '13:00'] },
+            { id: 'd4', name: 'Dr. David Lee', specialization: 'Cardiology', roomNumber: 'A-205', availability: ['11:00', '14:00', '16:00', '17:00'] },
+            { id: 'd5', name: 'Dr. Emily Chen', specialization: 'Dermatology', roomNumber: 'D-402', availability: ['09:00', '11:00', '12:00', '14:00'] },
+            { id: 'd6', name: 'Dr. Frank Miller', specialization: 'Orthopedics', roomNumber: 'O-501', availability: ['10:00', '11:00', '13:00', '15:00'] },
+            { id: 'd7', name: 'Dr. Grace Hall', specialization: 'Pediatrics', roomNumber: 'P-308', availability: ['14:00', '15:00', '16:00'] },
+        ];
+
+        const TIME_SLOTS = [
+            '09:00', '10:00', '11:00', '12:00', 
+            '13:00', '14:00', '15:00', '16:00', '17:00'
+        ];
+
+        // --- DOM REFERENCES ---
+        const viewLanding = document.getElementById('view-landing');
+        const viewBooking = document.getElementById('view-booking');
+        const timeSelect = document.getElementById('time');
+        const specializationSelect = document.getElementById('specialization');
+        const doctorResultsDiv = document.getElementById('doctor-results');
+        const loadingSpinner = document.getElementById('loading-spinner');
+        const initialMessage = document.getElementById('initial-message');
+        const messageBox = document.getElementById('message-box');
+        const dateInput = document.getElementById('date');
+        const bookingModal = document.getElementById('booking-modal');
+        const reminderModal = document.getElementById('reminder-modal');
+
+        // --- VIEW CONTROLLER ---
+        function switchView(viewName) {
+            if (viewName === 'landing') {
+                viewLanding.classList.remove('hidden');
+                viewBooking.classList.add('hidden');
+            } else if (viewName === 'booking') {
+                viewLanding.classList.add('hidden');
+                viewBooking.classList.remove('hidden');
+            }
+            window.scrollTo({ top: 0, behavior: 'smooth' });
+        }
+
+        // --- INITIALIZATION ---
+        function initializeForm() {
+            const today = new Date().toISOString().split('T')[0];
+            dateInput.value = today;
+            dateInput.min = today;
+
+            TIME_SLOTS.forEach(time => {
+                const option = document.createElement('option');
+                option.value = time;
+                option.textContent = `${time} - ${new Date(`2000/01/01 ${time}`).toLocaleTimeString('en-US', { hour: '2-digit', minute: '2-digit', hour12: true })}`;
+                timeSelect.appendChild(option);
+            });
+
+            const specializations = [...new Set(MOCK_DOCTORS.map(d => d.specialization))];
+            specializations.forEach(spec => {
+                const option = document.createElement('option');
+                option.value = spec;
+                option.textContent = spec;
+                specializationSelect.appendChild(option);
+            });
+        }
+
+        function getSpecializationColor(spec) {
+            const colors = {
+                Cardiology: 'bg-red-500',
+                Pediatrics: 'bg-blue-500',
+                Neurology: 'bg-purple-500',
+                Dermatology: 'bg-yellow-500',
+                Orthopedics: 'bg-green-500',
+            };
+            return colors[spec] || 'bg-gray-500';
+        }
+
+        function createDoctorCard(doctor, selectedTime) {
+            const colorClass = getSpecializationColor(doctor.specialization);
+            return `
+                <div class="bg-white border border-gray-100 rounded-xl overflow-hidden shadow-lg transition duration-300 hover:shadow-xl transform hover:-translate-y-0.5">
+                    <div class="p-5">
+                        <div class="flex items-start">
+                            <svg class="w-10 h-10 ${colorClass} text-white p-2 rounded-full mr-4 flex-shrink-0" xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                                <path d="M7 13v-3a3 3 0 0 1 6 0v3" />
+                                <path d="M11 13h2" />
+                                <path d="M12 2a4 4 0 0 0-4 4v4.5A4.5 4.5 0 0 1 5.5 15c-1 0-1.5.5-1.5 1s.5 1 1.5 1A4.5 4.5 0 0 1 10 20.5v1.5" />
+                                <path d="M12 2a4 4 0 0 1 4 4v4.5a4.5 4.5 0 0 0 3 4.5c1 0 1.5.5 1.5 1s-.5 1-1.5 1A4.5 4.5 0 0 0 14 20.5v1.5" />
+                            </svg>
+                            <div>
+                                <h4 class="text-xl font-bold text-gray-800">${doctor.name}</h4>
+                                <p class="text-teal-600 font-medium">${doctor.specialization}</p>
+                            </div>
+                        </div>
+                        <div class="mt-4 flex justify-between items-center">
+                            <span class="inline-block px-3 py-1 text-xs font-semibold rounded-full text-white ${colorClass} shadow-md">
+                                Room: ${doctor.roomNumber}
+                            </span>
+                            <span class="text-sm font-bold text-gray-700">${selectedTime}</span>
+                        </div>
+                        <button onclick="openBookingModal('${doctor.id}', '${doctor.name}', '${doctor.specialization}', '${doctor.roomNumber}', '${selectedTime}', '${dateInput.value}')" 
+                                class="mt-4 w-full bg-teal-500 text-white py-2 rounded-lg font-semibold hover:bg-teal-600 transition duration-150">
+                            Book Slot
+                        </button>
+                    </div>
+                </div>
+            `;
+        }
+
+        async function handleSearch() {
+            const selectedDate = dateInput.value;
+            const selectedTime = timeSelect.value;
+            const selectedSpecialization = specializationSelect.value;
+
+            if (!selectedDate || !selectedTime) {
+                showMessage('Please select a Date and Time slot.', 'bg-red-100 text-red-800 border-red-300');
+                return;
+            }
+
+            doctorResultsDiv.innerHTML = '';
+            initialMessage.classList.add('hidden');
+            loadingSpinner.classList.remove('hidden');
+            hideMessage();
+
+            // Simulate slight delay
+            await new Promise(resolve => setTimeout(resolve, 500));
+            loadingSpinner.classList.add('hidden');
+
+            const availableDoctors = MOCK_DOCTORS.filter(doc => 
+                doc.availability.includes(selectedTime) && 
+                (selectedSpecialization === 'All' || doc.specialization === selectedSpecialization)
+            );
+
+            if (availableDoctors.length === 0) {
+                doctorResultsDiv.innerHTML = `
+                    <p class="col-span-full text-center text-gray-600 py-6 text-lg bg-gray-50 rounded-lg border border-gray-200">
+                        No doctors available for <span class="font-semibold text-teal-700">${selectedSpecialization}</span> at <span class="font-semibold text-teal-700">${selectedTime}</span>.
+                    </p>
+                `;
+            } else {
+                availableDoctors.forEach(doctor => {
+                    doctorResultsDiv.innerHTML += createDoctorCard(doctor, selectedTime);
+                });
+                showMessage(`Found ${availableDoctors.length} practitioners available for mapping.`, 'bg-green-100 text-green-800 border-green-300');
+            }
+        }
+
+        function showMessage(msg, classList) {
+            messageBox.innerHTML = msg;
+            messageBox.className = `p-4 rounded-lg text-sm mb-4 border ${classList}`;
+            messageBox.classList.remove('hidden');
+        }
+
+        function hideMessage() {
+            messageBox.classList.add('hidden');
+        }
+
+        // --- MODAL HANDLING ---
+        function openBookingModal(doctorId, doctorName, specialization, roomNumber, timeSlot, date) {
+            document.getElementById('modal-details').innerHTML = `
+                <p class="font-semibold text-gray-800">${doctorName}</p>
+                <p class="text-teal-600">Specialization: ${specialization}</p>
+                <p class="text-red-500">Room: ${roomNumber}</p>
+                <p class="text-gray-600">Date & Slot: ${date} at ${timeSlot}</p>
+            `;
+            document.getElementById('modal-doctor-id').value = doctorId;
+            document.getElementById('modal-time-slot').value = timeSlot;
+            bookingModal.classList.remove('hidden');
+        }
+
+        function closeModal() {
+            document.getElementById('patient-id').value = '';
+            bookingModal.classList.add('hidden');
+        }
+
+        function confirmBooking() {
+            const patientId = document.getElementById('patient-id').value.trim();
+            const doctorId = document.getElementById('modal-doctor-id').value;
+            const timeSlot = document.getElementById('modal-time-slot').value;
+            const doctor = MOCK_DOCTORS.find(d => d.id === doctorId);
+
+            if (!patientId) {
+                showMessage('Please enter your Patient ID or Full Name.', 'bg-red-100 text-red-800 border-red-300');
+                closeModal();
+                return;
+            }
+
+            showMessage(`
+                <div class="font-bold text-base">Booking Confirmed!</div>
+                <p class="mt-1">Patient: <b>${patientId}</b> | Doctor: <b>${doctor.name}</b></p>
+                <p class="text-red-600 mt-1">Please head to <b>Room ${doctor.roomNumber}</b> at ${timeSlot} on ${dateInput.value}.</p>
+            `, 'bg-teal-100 text-teal-800 border-teal-300');
+            closeModal();
+        }
+
+        function openReminderModal() {
+            reminderModal.classList.remove('hidden');
+        }
+
+        function closeReminderModal() {
+            document.getElementById('reminder-patient').value = '';
+            document.getElementById('reminder-contact').value = '';
+            reminderModal.classList.add('hidden');
+        }
+
+        function submitReminder() {
+            const name = document.getElementById('reminder-patient').value;
+            closeReminderModal();
+            showMessage(`Reminder successfully activated for <b>${name}</b>! You will receive notifications on the day of your appointment.`, 'bg-amber-100 text-amber-800 border-amber-300');
+        }
+
+        window.onload = initializeForm;
+    </script>
+</body>
+</html>
